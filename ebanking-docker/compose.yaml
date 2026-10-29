@@ -1,0 +1,228 @@
+
+name: ebanking
+
+services:
+
+  # ==========================================
+  # 1. EUREKA DISCOVERY SERVICE
+  # ==========================================
+  discovery-service:
+    build:
+      context: ../discovery-service
+      dockerfile: Dockerfile
+    image: ebanking-discovery-service:1.0
+    container_name: ebanking-discovery
+    ports:
+      - "8761:8761"
+    environment:
+      EUREKA_HOSTNAME: discovery-service
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ==========================================
+  # 2. SPRING CLOUD CONFIG SERVER
+  # ==========================================
+  config-service:
+    build:
+      context: ../config-service
+      dockerfile: Dockerfile
+    image: ebanking-config-service:1.0
+    container_name: ebanking-config
+    ports:
+      - "8888:8888"
+    volumes:
+      - ../ebanking-config-repo:/config-repo:ro
+    environment:
+      CONFIG_REPO_PATH: file:/config-repo/
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ==========================================
+  # 3. CUSTOMER SERVICE
+  # ==========================================
+  customer-service:
+    build:
+      context: ../customer-service
+      dockerfile: Dockerfile
+    image: ebanking-customer-service:1.0
+    container_name: ebanking-customer
+    ports:
+      - "8081:8081"
+    environment:
+      CONFIG_SERVER_URL: http://config-service:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      EUREKA_SERVER_URL: http://discovery-service:8761/eureka/
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/customers"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ==========================================
+  # 4. EBANK SERVICE
+  # ==========================================
+  ebank-service:
+    build:
+      context: ../ebank-service
+      dockerfile: Dockerfile
+    image: ebanking-ebank-service:1.0
+    container_name: ebanking-ebank
+    ports:
+      - "8082:8082"
+    environment:
+      CONFIG_SERVER_URL: http://config-service:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      EUREKA_SERVER_URL: http://discovery-service:8761/eureka/
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8082/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ==========================================
+  # 5. API GATEWAY
+  # ==========================================
+  gateway-service:
+    build:
+      context: ../gateway-service
+      dockerfile: Dockerfile
+    image: ebanking-gateway-service:1.0
+    container_name: ebanking-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      CONFIG_SERVER_URL: http://config-service:8888
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      EUREKA_SERVER_URL: http://discovery-service:8761/eureka/
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      customer-service:
+        condition: service_healthy
+      ebank-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ==========================================
+  # 6. MCP SERVER
+  # ==========================================
+  mcp-server-service:
+    build:
+      context: ../mcp-server-service
+      dockerfile: Dockerfile
+    image: ebanking-mcp-server-service:1.0
+    container_name: ebanking-mcp
+    ports:
+      - "8085:8085"
+    environment:
+      CONFIG_SERVER_URL: http://config-service:8888
+      EUREKA_SERVER_URL: http://discovery-service:8761/eureka/
+      GATEWAY_URL: http://gateway-service:8080
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8085/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  # ==========================================
+  # 7. AI CHATBOT SERVICE
+  # ==========================================
+  ai-chatbot-service:
+    build:
+      context: ../ai-chatbot-service
+      dockerfile: Dockerfile
+    image: ebanking-ai-chatbot-service:1.0
+    container_name: ebanking-ai-chatbot
+    ports:
+      - "8084:8084"
+    env_file:
+      - .env
+    environment:
+      CONFIG_SERVER_URL: http://config-service:8888
+      EUREKA_SERVER_URL: http://discovery-service:8761/eureka/
+      MCP_SERVER_URL: http://mcp-server-service:8085
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+      config-service:
+        condition: service_healthy
+      mcp-server-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8084/actuator/health | grep -Eq '^(200|404)$'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
+
+  # ==========================================
+  # 8. ANGULAR + NGINX
+  # ==========================================
+  angular:
+    build:
+      context: ../ebanking-angular
+      dockerfile: Dockerfile
+    image: ebanking-angular:1.0
+    container_name: ebanking-angular
+    ports:
+      - "4200:80"
+    depends_on:
+      gateway-service:
+        condition: service_healthy
+      ai-chatbot-service:
+        condition: service_healthy
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:80/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

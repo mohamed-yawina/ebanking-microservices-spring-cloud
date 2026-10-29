@@ -1,0 +1,122 @@
+
+<div class="chatbot-page">
+
+  <div class="page-header">
+    <div>
+      <h1>AI Banking Assistant</h1>
+      <p>
+        Assistant intelligent connecté à Gemini et MCP
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="clear-btn"
+      (click)="clearChat()"
+      [disabled]="loading">
+      Nouvelle conversation
+    </button>
+  </div>
+
+  <div class="chat-container">
+
+    <div class="chat-header">
+      <div class="avatar">AI</div>
+
+      <div>
+        <h3>Assistant bancaire</h3>
+        <span>Gemini + MCP Tools</span>
+      </div>
+    </div>
+
+    <div class="messages" #messagesContainer>
+
+      @for (message of messages; track $index) {
+
+        <div
+          class="message"
+          [class.user]="message.role === 'user'">
+
+          <div class="message-avatar">
+            {{ message.role === 'user' ? 'Vous' : 'AI' }}
+          </div>
+
+          <div class="message-content">
+
+            <div
+              class="message-bubble"
+              [innerHTML]="formatMessage(message.content)">
+            </div>
+
+            <small>
+              {{ message.timestamp.toLocaleTimeString(
+                'fr-FR',
+                {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }
+              ) }}
+            </small>
+
+          </div>
+        </div>
+      }
+
+      @if (loading) {
+        <div class="message">
+          <div class="message-avatar">AI</div>
+
+          <div class="message-content">
+            <div class="message-bubble typing">
+              L'assistant réfléchit...
+            </div>
+          </div>
+        </div>
+      }
+
+    </div>
+
+    @if (messages.length <= 1) {
+      <div class="suggestions">
+
+        @for (suggestion of suggestions; track suggestion) {
+          <button
+            type="button"
+            (click)="useSuggestion(suggestion)"
+            [disabled]="loading">
+            {{ suggestion }}
+          </button>
+        }
+
+      </div>
+    }
+
+    @if (error) {
+      <div class="error-message">
+        {{ error }}
+      </div>
+    }
+
+    <form
+      class="chat-input"
+      (ngSubmit)="sendMessage()">
+
+      <input
+        type="text"
+        name="message"
+        [(ngModel)]="userMessage"
+        placeholder="Posez votre question..."
+        [disabled]="loading"
+        autocomplete="off"
+      />
+
+      <button
+        type="submit"
+        [disabled]="loading || !userMessage.trim()">
+        {{ loading ? 'Patientez...' : 'Envoyer' }}
+      </button>
+
+    </form>
+
+  </div>
+</div>
