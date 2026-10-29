@@ -1,0 +1,79 @@
+
+<div class="dashboard">
+
+  <div class="dashboard-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Vue générale de votre système bancaire</p>
+    </div>
+
+    <button
+      class="refresh-btn"
+      (click)="refreshDashboard()"
+      [disabled]="loading"
+    >
+      Actualiser
+    </button>
+  </div>
+
+  @if (loading) {
+    <div class="loading">
+      Chargement des données...
+    </div>
+  }
+
+  @if (error && !loading) {
+    <div class="error">
+      {{ error }}
+    </div>
+  }
+
+  @if (!loading && !error) {
+
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <h3>Total Clients</h3>
+        <div class="stat-value">
+          {{ totalCustomers }}
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">🏦</div>
+        <h3>Total Comptes</h3>
+        <div class="stat-value">
+          {{ totalAccounts }}
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <h3>Solde Total</h3>
+        <div class="stat-value">
+          {{ totalBalance | number:'1.2-2' }} MAD
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💳</div>
+        <h3>Comptes Courants</h3>
+        <div class="stat-value">
+          {{ currentAccounts }}
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">💵</div>
+        <h3>Comptes Épargne</h3>
+        <div class="stat-value">
+          {{ savingAccounts }}
+        </div>
+      </div>
+
+    </div>
+
+  }
+
+</div>

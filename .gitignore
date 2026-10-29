@@ -29,3 +29,39 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Java / Maven
+**/target/
+**/*.class
+**/*.jar
+
+# Angular / Node
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.settings/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+# Docker backups
+*.yaml.backup
