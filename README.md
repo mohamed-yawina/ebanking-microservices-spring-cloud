@@ -1,120 +1,134 @@
+<div align="center">
+
 # E-Banking Microservices Platform
 
-A full-stack E-Banking application built with **Spring Boot, Spring Cloud, Angular 22, Docker, and AI integrations**.
+**Spring Boot · Spring Cloud · Angular 22 · Docker · Gemini AI · MCP**
 
-The project demonstrates a microservices architecture with centralized configuration, service discovery, API routing, banking services, and an AI-powered chatbot.
+An educational full-stack banking platform demonstrating **service discovery, centralized configuration, API routing, inter-service communication, fault tolerance, and AI-assisted interactions**.
 
-## Technology Stack
+[![Java](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)](https://www.java.com/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.2-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Angular](https://img.shields.io/badge/Angular-22-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://docs.docker.com/compose/)
+[![License](https://img.shields.io/badge/License-Not_specified-lightgrey)](#project-status-and-limitations)
 
-**Backend**
-- Java 17
-- Spring Boot
-- Spring Cloud Gateway
-- Netflix Eureka
-- Spring Cloud Config
-- Maven
-- REST APIs
+[Architecture](#architecture) · [Services](#services-and-local-ports) · [Quick Start](#quick-start) · [Configuration](#configuration-and-security) · [Limitations](#project-status-and-limitations)
 
-**Frontend**
-- Angular 22
-- TypeScript
-- HTML and CSS
-- Nginx
+</div>
 
-**AI & Integrations**
-- Google Gemini API
-- Model Context Protocol (MCP)
-- Telegram Bot
-- Discord Bot
+---
 
-**DevOps**
-- Docker
-- Docker Compose
-- Multi-stage Docker builds
-- Git and GitHub
+## Overview
 
-## Microservices Architecture
+This repository contains a modular E-Banking application developed as a **software engineering / microservices learning project**. It brings together backend services, an Angular web application, a centralized configuration repository, Docker Compose orchestration, and optional AI integrations.
+
+### Key capabilities
+
+- Customer and bank-account management through REST APIs
+- **Spring Cloud Gateway** with service-discovery-based routing
+- **Netflix Eureka** for service registration and discovery
+- **Spring Cloud Config Server** for shared configuration
+- **OpenFeign**, **Spring Cloud LoadBalancer**, and **Resilience4J** dependencies in the banking service
+- **Angular 22** frontend served by **Nginx** in the containerized setup
+- **Gemini-powered AI chatbot**, **MCP server**, and Telegram / Discord integrations
+- **Docker Compose** with health checks and startup dependencies
+
+## Architecture
 
 ```text
-                  Angular Frontend
-                   localhost:4200
-                         |
-                         v
-                  API Gateway
-                   localhost:8080
-                         |
-             +-----------+-----------+
-             |                       |
-             v                       v
-      Customer Service         E-Bank Service
-       localhost:8081           localhost:8082
+                       Browser
+                          |
+                          v
+                 Angular 22 + Nginx
+                    localhost:4200
+                          |
+                          v
+                  Spring Cloud Gateway
+                    localhost:8080
+                          |
+             +------------+-------------+
+             |            |             |
+        /customers/**  /accounts/**   /chat/**
+             |            |             |
+             v            v             v
+       Customer Service  E-Bank      AI Chatbot
+          :8081         Service        :8084
+                         :8082           |
+                                        +---- Google Gemini
+                                        +---- MCP Server :8085
+                                        +---- Telegram / Discord
 
-                AI Chatbot Service
-                  localhost:8084
-                         |
-               +---------+---------+
-               |         |         |
-             Gemini     MCP    Telegram/Discord
-                        Server
-                    localhost:8085
-
-Infrastructure:
-- Eureka Discovery Service: localhost:8761
-- Spring Cloud Config Server: localhost:8888
+     Eureka Discovery :8761  |  Config Server :8888
+                Shared configuration repository
 ```
 
-*This diagram provides a simplified overview of the application components.*
+The diagram summarizes configured routes and components; it is not a guarantee that all integrations are operational in every environment.
 
-## Services and Ports
+## Services and local ports
 
-| Service | Port | Description |
-|---|---|---|
-| Angular | 4200 | Web application |
-| API Gateway | 8080 | API entry point |
-| Discovery Service | 8761 | Eureka service registry |
-| Config Service | 8888 | Centralized configuration |
-| Customer Service | 8081 | Customer management |
-| E-Bank Service | 8082 | Banking operations |
-| AI Chatbot Service | 8084 | AI assistant |
-| MCP Server Service | 8085 | MCP integration |
+| Component | Port | Responsibility |
+| :--- | ---: | :--- |
+| Angular + Nginx | 4200 | Browser-facing web application |
+| Gateway Service | 8080 | API routing and service discovery |
+| Customer Service | 8081 | Customer REST endpoints |
+| E-Bank Service | 8082 | Banking and account endpoints |
+| AI Chatbot Service | 8084 | Gemini-based assistant and bot integrations |
+| MCP Server Service | 8085 | Model Context Protocol integration |
+| Eureka Discovery | 8761 | Service registry and dashboard |
+| Config Server | 8888 | Centralized Spring configuration |
 
-## Project Structure
+**Gateway route definitions:** `/customers/**`, `/accounts/**`, and `/chat/**` are configured in `ebanking-config-repo/gateway-service.properties`.
+
+## Technology stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| Backend | Java 17, Spring Boot, Spring Web MVC, Spring Data JPA, Maven |
+| Microservices | Spring Cloud Gateway, Eureka, Spring Cloud Config, OpenFeign, LoadBalancer, Resilience4J |
+| Frontend | Angular 22, TypeScript, HTML, CSS |
+| AI & integrations | Spring AI, Google Gemini, MCP, Telegram, Discord (JDA) |
+| Database | H2 in-memory database in the banking services |
+| Infrastructure | Docker, Docker Compose, Nginx, Git |
+
+The inspected Maven files use **Spring Boot 4.1.2**; some services specify different Spring Cloud BOM patch versions. See [Limitations](#project-status-and-limitations).
+
+## Repository structure
 
 ```text
 ebanking-microservices-spring-cloud/
-├── discovery-service/
+├── ai-chatbot-service/
 ├── config-service/
 ├── customer-service/
+├── discovery-service/
 ├── ebank-service/
-├── gateway-service/
-├── mcp-server-service/
-├── ai-chatbot-service/
 ├── ebanking-angular/
 ├── ebanking-config-repo/
 ├── ebanking-docker/
 │   ├── compose.yaml
 │   └── .env.example
+├── gateway-service/
+├── mcp-server-service/
+├── .gitignore
 └── README.md
 ```
 
-## Getting Started
+## Quick start
 
 ### Prerequisites
 
 - Git
-- Docker Desktop
-- Docker Compose
+- Docker Desktop or a compatible Docker Engine
+- Docker Compose plugin
+- Credentials for any optional AI/bot integrations you intend to enable
 
-### 1. Clone the Repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/mohamed-yawina/ebanking-microservices-spring-cloud.git
 cd ebanking-microservices-spring-cloud
 ```
 
-### 2. Configure Environment Variables
-
-Create a local environment file from the provided template.
+### 2. Configure environment variables
 
 On Windows PowerShell:
 
@@ -122,64 +136,98 @@ On Windows PowerShell:
 Copy-Item .\ebanking-docker\.env.example .\ebanking-docker\.env
 ```
 
-Update `.env` with your own credentials and configuration values for the AI and bot integrations.
+On macOS/Linux:
 
-**Never commit `.env` or real API keys to GitHub.**
+```bash
+cp ebanking-docker/.env.example ebanking-docker/.env
+```
 
-### 3. Build and Start the Application
+Edit `ebanking-docker/.env` and replace placeholders with **your own** keys and identifiers if using Gemini, Discord, or Telegram. Do not commit this file.
+
+### 3. Validate the Compose configuration
+
+```bash
+docker compose --env-file ebanking-docker/.env -f ebanking-docker/compose.yaml config
+```
+
+### 4. Build and launch
 
 ```bash
 docker compose -f ebanking-docker/compose.yaml up --build -d
 ```
 
-Docker Compose builds the Java services and Angular frontend using their respective multi-stage Dockerfiles.
+### 5. Inspect status and logs
 
-### 4. Access the Application
+```bash
+docker compose -f ebanking-docker/compose.yaml ps
+docker compose -f ebanking-docker/compose.yaml logs --tail=100 gateway-service
+```
 
-| Application | URL |
-|---|---|
-| Angular Frontend | http://localhost:4200 |
-| API Gateway | http://localhost:8080 |
-| Eureka Dashboard | http://localhost:8761 |
-| Config Server | http://localhost:8888 |
+### 6. Open local endpoints
 
-### 5. Stop the Application
+- **Web app:** http://localhost:4200
+- **Gateway:** http://localhost:8080
+- **Eureka dashboard:** http://localhost:8761
+- **Config Server:** http://localhost:8888
+
+These addresses assume successful local startup with the published Compose port mappings.
+
+### 7. Stop
 
 ```bash
 docker compose -f ebanking-docker/compose.yaml down
 ```
 
-## Main Features
+> **Data persistence:** The inspected banking service configuration uses `jdbc:h2:mem:ebank-db` and `spring.jpa.hibernate.ddl-auto=create-drop`. Treat data as temporary: restarting the service can erase it.
 
-- Customer management
-- Bank account management
-- Microservices registration and discovery
-- Centralized configuration
-- API Gateway routing
-- Angular dashboard
-- AI chatbot powered by Google Gemini
-- MCP server integration
-- Telegram and Discord bot integrations
-- Containerized deployment with Docker Compose
+## Configuration and security
 
-## Security and Configuration
+- Configuration files are maintained in `ebanking-config-repo/` and served by Spring Cloud Config.
+- The AI service uses environment variables from `ebanking-docker/.env`, based on `.env.example`.
+- The repository's `.gitignore` excludes common `.env` files, build artifacts, IDE settings, and local secrets.
+- **Never commit API keys, tokens, passwords, or production customer data.**
+- This repository is a **demonstration**, not a production banking system. Production use would require a security review, authentication and authorization, HTTPS, managed secrets, persistent storage, and deployment hardening.
 
-Sensitive credentials are supplied through environment variables rather than committed source files.
+## Project status and limitations
 
-The repository includes `.env.example` with placeholder values. Actual credentials must be configured locally.
+The repository structure, Compose definitions, Maven dependencies, Angular package manifest, and selected configuration files were inspected to prepare this documentation. **A successful end-to-end build or runtime test has not been established by this README audit.**
 
-For production deployment, additional security measures such as authentication, authorization, HTTPS, and secure secret management should be configured and verified.
+Items to verify when running locally:
 
-## Build and Deployment
+1. **Docker networking:** `ebanking-config-repo/ebank-service.properties` uses `http://localhost:8761/eureka/` for Eureka. Inside a container, `localhost` refers to that container, not the Eureka container. Confirm that the configuration resolves to the appropriate Docker service hostname.
+2. **Service readiness:** Compose includes health checks and `depends_on` conditions. Check container health and logs if startup is blocked.
+3. **Version alignment:** Inspected modules use Spring Boot 4.1.2, while Spring Cloud BOM patch versions differ between some modules. Verify dependency compatibility during builds.
+4. **AI integrations:** Gemini, Telegram, and Discord require valid credentials and may not work with placeholder values.
+5. **Data storage:** H2 in-memory databases are suitable for development and demos, not persistent banking records.
+6. **Licensing:** No license is declared in this README; check repository licensing before reuse or redistribution.
 
-Each Spring Boot microservice uses a multi-stage Dockerfile to build the application with Maven and run it with Java 17.
+## Suggested verification commands
 
-The Angular application uses Node.js 24 for compilation and Nginx to serve the production build.
+For an individual Java module, from its directory:
+
+```bash
+./mvnw test
+```
+
+On Windows, use `mvnw.cmd test` if the Maven wrapper is present. Alternatively use an installed Maven distribution with `mvn test`.
+
+For the Angular app:
+
+```bash
+cd ebanking-angular
+npm ci
+npm run build
+npm test
+```
+
+These are **commands to run**, not claims that the tests have passed.
 
 ## Author
 
-**Mohamed Yawina**
+**Mohamed Yawina** — Software Engineering Student, EMSI (Morocco)
 
-Software Engineering Student — EMSI, Morocco
+[GitHub Profile](https://github.com/mohamed-yawina) · [LinkedIn](https://www.linkedin.com/in/mohamed-yawina/)
 
-**GitHub:** https://github.com/mohamed-yawina
+---
+
+<div align="center"><sub>Built for learning, architecture practice, and practical full-stack experimentation.</sub></div>
